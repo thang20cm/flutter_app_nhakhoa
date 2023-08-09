@@ -70,7 +70,7 @@ void endWorkTime() {
   Future<void> themphieudoanhthu(DateTime startTime, DateTime endTime) async {
     if (ngaynhapphieu.text != "") {
       try {
-        String uri = "http://10.0.2.2/ApiFlutter/themphieudoanhthu.php";
+        String uri = "http://buffquat13.000webhostapp.com/themphieudoanhthu.php";
 
         var res = await http.post(Uri.parse(uri), body: {
           "ngaynhapphieu": ngaynhapphieu.text,
@@ -96,7 +96,7 @@ void endWorkTime() {
 
   Future<void> getphieudoanhthu() async {
     try {
-      String uri = "http://10.0.2.2/ApiFlutter/get_phieudoanhthu.php";
+      String uri = "http://buffquat13.000webhostapp.com/get_phieudoanhthu.php";
       var response = await http.get(Uri.parse(uri));
 
       if (response.statusCode == 200) {
@@ -221,7 +221,7 @@ class _MayMocScreenState extends State<maymoc> {
     if(ngaynhapphieu.text!=""){
       try{
 
-        String uri = "http://10.0.2.2/ApiFlutter/themphieumaymoc.php";
+        String uri = "http://buffquat13.000webhostapp.com/themphieumaymoc.php";
 
         var res=await http.post(Uri.parse(uri),body: {
           "ngaynhapphieu":ngaynhapphieu.text,
@@ -252,7 +252,7 @@ class _MayMocScreenState extends State<maymoc> {
 
   Future<void> getphieumaymoc() async {
     try {
-      String uri = "http://10.0.2.2/ApiFlutter/get_phieumaymoc.php";
+      String uri = "http://buffquat13.000webhostapp.com/get_phieumaymoc.php";
       var response = await http.get(Uri.parse(uri));
 
       if (response.statusCode == 200) {
@@ -348,7 +348,7 @@ class _chitietphieumaymocState extends State<chitietphieumaymoc> {
 
   Future<void> fetchDataSudungMayMoc() async {
     try {
-      String uri = "http://10.0.2.2/ApiFlutter/get_maymoc.php";
+      String uri = "http://buffquat13.000webhostapp.com/get_maymoc.php";
       var response = await http.get(Uri.parse(uri));
 
       if (response.statusCode == 200) {
@@ -450,7 +450,7 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
     if(tenmaymoc.text!="" || tinhtrang.text!= "" || tondaungay.text!=""||khachhangmaso.text!="" || soluongsudung.text!= "" || conlaicuoingay.text!=""||tinhtrangcuoingay.text!=""||thoigiannhapphieu.text!=""){
       try{
 
-        String uri = "http://10.0.2.2/ApiFlutter/maymoc.php";
+        String uri = "http://buffquat13.000webhostapp.com/maymoc.php";
 
         var res=await http.post(Uri.parse(uri),body: {
           "tenmaymoc":tenmaymoc.text,
@@ -610,7 +610,7 @@ class DangKy extends StatelessWidget{
     if(name.text!="" || email.text!= "" || password.text!=""){
       try{
 
-        String uri = "http://10.0.2.2/ApiFlutter/insert_record.php";
+        String uri = "http://buffquat13.000webhostapp.com/insert_record.php";
 
         var res=await http.post(Uri.parse(uri),body: {
           "name":name.text,
@@ -710,7 +710,7 @@ class DangNhap extends StatelessWidget {
   Future<void> login(BuildContext context) async {
     if (email.text.isNotEmpty && password.text.isNotEmpty) { // Thay đổi điều kiện ở đây
       try {
-        String uri = "http://10.0.2.2/ApiFlutter/login.php";
+        String uri = "http://buffquat13.000webhostapp.com/login.php";
 
         var res = await http.post(Uri.parse(uri), body: {
           "email": email.text,
@@ -837,4 +837,3 @@ class HomeUser extends StatelessWidget {
     Navigator.pushNamed(context, '/${menuName.toLowerCase()}',arguments: userId);
   }
 }
-
