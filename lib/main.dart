@@ -9,28 +9,176 @@ void main() {
     routes: {
       '/':(context) => DangNhap(),
       '/dangky':(context)=>DangKy(),
-      '/home':(context)=>HomeUser(),
-      '/doanhthucongviec': (context) => doanhthucongviec(), // Đăng ký giao diện menu 1
-      '/maymoc': (context) => maymoc(), // Đăng ký giao diện menu 2
-      '/dungcu': (context) => dungcu(), // Đăng ký giao diện menu 3
-      '/vatlieu': (context) => vatlieu(),
-      '/themmaymoc': (context) => themmaymoc(), // Đăng ký giao diện menu 4
+      '/home': (context) {
+      final userId = ModalRoute.of(context)?.settings.arguments as String?;
+      return HomeUser(userId: userId ?? ''); // Truyền userId vào trang HomeUser
+    },
+       '/doanh thu công việc': (context) => doanhthucongviec(userId: ModalRoute.of(context)!.settings.arguments as String),
+  '/máy móc': (context) => maymoc(userId: ModalRoute.of(context)!.settings.arguments as String),
+  '/dụng cụ': (context) => dungcu(userId: ModalRoute.of(context)!.settings.arguments as String),
+  '/vật liệu': (context) => vatlieu(userId: ModalRoute.of(context)!.settings.arguments as String),
+      '/themmaymoc': (context) => themmaymoc(idPhieumaymoc: ModalRoute.of(context)!.settings.arguments as String), // Đăng ký giao diện menu 4
     },
   ));
 }
 
-class doanhthucongviec extends StatelessWidget {
+class doanhthucongviec extends StatefulWidget {
+  final String userId;
+
+  doanhthucongviec({required this.userId});
+
+  @override
+  _DoanhThuScreenState createState() => _DoanhThuScreenState();
+}
+
+class _DoanhThuScreenState extends State<doanhthucongviec> {
+  TextEditingController ngaynhapphieu = TextEditingController();
+  List<String> danhSachSudungMayMoc = [];
+  TextEditingController batdau = TextEditingController();
+  TextEditingController ketthuc = TextEditingController();
+  DateTime? startTime;
+  DateTime? endTime;
+
+  @override
+  void initState() {
+    super.initState();
+    setNgayNhapPhieu();
+    getphieudoanhthu();
+  }
+
+  void setNgayNhapPhieu() {
+    DateTime now = DateTime.now();
+    ngaynhapphieu.text = "${now.day}/${now.month}/${now.year}";
+  }
+
+void startWorkTime() {
+  setState(() {
+    DateTime now = DateTime.now();
+    startTime = DateTime(now.hour);
+    
+  });
+}
+
+void endWorkTime() {
+  setState(() {
+    DateTime now = DateTime.now();
+    endTime = DateTime(now.hour);
+  });
+}
+
+
+  Future<void> themphieudoanhthu(DateTime startTime, DateTime endTime) async {
+    if (ngaynhapphieu.text != "") {
+      try {
+        String uri = "http://10.0.2.2/ApiFlutter/themphieudoanhthu.php";
+
+        var res = await http.post(Uri.parse(uri), body: {
+          "ngaynhapphieu": ngaynhapphieu.text,
+          "uid": widget.userId,
+          "batdaugiolamviec": startTime.toString(), // Lưu thời gian bắt đầu
+          "ketthucgiolamviec": endTime.toString(), // Lưu thời gian kết thúc
+        });
+        var response = jsonDecode(res.body);
+        if (response["Success"] == "true") {
+          print("Them phieu may moc thanh cong!");
+          ngaynhapphieu.text = "";
+        } else {
+          print("Error!");
+        }
+      } catch (e) {
+        print(e);
+      }
+    } else {
+      print("Lam on dien vao o trong");
+    }
+    getphieudoanhthu();
+  }
+
+  Future<void> getphieudoanhthu() async {
+    try {
+      String uri = "http://10.0.2.2/ApiFlutter/get_phieudoanhthu.php";
+      var response = await http.get(Uri.parse(uri));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<String> danhSachMayMoc = data
+            .where((item) => item['uid'] == widget.userId)
+            .map((item) =>
+                "${item['ngayNhapPhieu']} - ${item['idPhieudoanhthu']}")
+            .toList();
+        setState(() {
+          this.danhSachSudungMayMoc = danhSachMayMoc;
+        });
+      } else {
+        print(
+            "Lỗi khi lấy dữ liệu từ bảng doanh thu cv: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi khi lấy dữ liệu từ bảng doanh thu cv: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Doanh thu cong viec'),
+        title: Text('Danh sách phiếu doanh thu cv'),
       ),
-      body: Center(
-        child: Text(
-          'Chào mừng bạn đến doanh thu cong viec!',
-          style: TextStyle(fontSize: 24),
-        ),
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  startWorkTime();
+                },
+                child: Text("Bắt đầu giờ làm việc"),
+              ),
+              SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () {
+                  endWorkTime();
+                },
+                child: Text("Kết thúc giờ làm việc"),
+              ),
+            ],
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: danhSachSudungMayMoc.length,
+              itemBuilder: (context, index) {
+                return InkWell(
+                  onTap: () async {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => chitietphieumaymoc(
+                          ngayPhieu: danhSachSudungMayMoc[index],
+                          idPhieumaymoc:
+                              danhSachSudungMayMoc[index].split(' - ')[1],
+                        ),
+                      ),
+                    );
+                  },
+                  child: ListTile(
+                    title: Text(danhSachSudungMayMoc[index]),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (startTime != null && endTime != null) {
+            themphieudoanhthu(startTime!, endTime!);
+            startTime = null;
+            endTime = null;
+          }
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
@@ -38,8 +186,11 @@ class doanhthucongviec extends StatelessWidget {
 
 
 
-//May moc
+////////////////////////////////////////////////////////// Start Phieu may moc
 class maymoc extends StatefulWidget {
+  final String userId;
+
+  maymoc({required this.userId});
   @override
   _MayMocScreenState createState() => _MayMocScreenState();
 
@@ -48,6 +199,7 @@ class maymoc extends StatefulWidget {
 class _MayMocScreenState extends State<maymoc> {
 
   TextEditingController ngaynhapphieu = TextEditingController();
+  
 
   List<String> danhSachSudungMayMoc = [];
 
@@ -62,6 +214,7 @@ class _MayMocScreenState extends State<maymoc> {
 
     // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
     ngaynhapphieu.text = "${now.day}/${now.month}/${now.year}";
+    
   }
 
  Future<void> themphieumaymoc() async {
@@ -72,9 +225,12 @@ class _MayMocScreenState extends State<maymoc> {
 
         var res=await http.post(Uri.parse(uri),body: {
           "ngaynhapphieu":ngaynhapphieu.text,
+          "uid":widget.userId,
+         
         });
         var response = jsonDecode(res.body);
         if(response["Success"]=="true"){
+      
           print("Them phieu may moc thanh cong!");
           ngaynhapphieu.text="";
         }
@@ -91,6 +247,7 @@ class _MayMocScreenState extends State<maymoc> {
       print("Lam on dien vao o trong");
     }
     getphieumaymoc();
+    
   }
 
   Future<void> getphieumaymoc() async {
@@ -100,10 +257,10 @@ class _MayMocScreenState extends State<maymoc> {
 
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
-        List<String> danhSachMayMoc = data.map((item) => "${item['ngayNhapPhieu']}").toList();
-        
-
-
+         List<String> danhSachMayMoc = data
+          .where((item) => item['uid'] == widget.userId) // Lọc theo uid
+          .map((item) => "${item['ngayNhapPhieu']} - ${item['idPhieumaymoc']}")
+          .toList();
         setState(() {
           this.danhSachSudungMayMoc = danhSachMayMoc;
         });
@@ -115,26 +272,25 @@ class _MayMocScreenState extends State<maymoc> {
     }
   }
 
-  
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Máy móc'),
+        title: Text('Danh sách phiếu máy móc'),
       ),
       body: ListView.builder(
   itemCount: danhSachSudungMayMoc.length,
   itemBuilder: (context, index) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
+       
         // Chuyển hướng tới trang chitietphieumaymoc khi nhấn vào phần tử trong RecyclerView
         Navigator.push(
           context,
           MaterialPageRoute(
             builder:(context) =>
-            chitietphieumaymoc(ngayPhieu: danhSachSudungMayMoc[index]),
+            chitietphieumaymoc(ngayPhieu: danhSachSudungMayMoc[index],idPhieumaymoc:danhSachSudungMayMoc[index].split(' - ')[1],
+           ),
           ),
         );
       },
@@ -160,18 +316,22 @@ class MayMocData {
   String tenMayMoc;
   String tinhTrang;
   String ngayNhapPhieu;
+ String idChitietPhieumaymoc;
 
   MayMocData({
     required this.tenMayMoc,
     required this.tinhTrang,
     required this.ngayNhapPhieu,
+    required this.idChitietPhieumaymoc,
   });
 }
 
 class chitietphieumaymoc extends StatefulWidget {
   final String ngayPhieu;
+  final String idPhieumaymoc;
 
-  chitietphieumaymoc({required this.ngayPhieu});
+
+  chitietphieumaymoc({required this.ngayPhieu,required this.idPhieumaymoc});
 
   @override
   _chitietphieumaymocState createState() => _chitietphieumaymocState();
@@ -197,10 +357,11 @@ class _chitietphieumaymocState extends State<chitietphieumaymoc> {
               tenMayMoc: item['tenMayMoc'],
               tinhTrang: item['tinhtrangCuoiNgay'],
               ngayNhapPhieu: item['ngayNhapPhieu'],
+              idChitietPhieumaymoc: item['idPhieumaymoc'],
             )).toList();
 
         setState(() {
-          danhSachMayMoc = mayMocList;
+          danhSachMayMoc = mayMocList.where((mayMoc) => mayMoc.idChitietPhieumaymoc == widget.idPhieumaymoc).toList();
         });
       } else {
         print("Lỗi khi lấy dữ liệu từ bảng sudungmaymoc: ${response.statusCode}");
@@ -224,17 +385,25 @@ class _chitietphieumaymocState extends State<chitietphieumaymoc> {
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(danhSachMayMoc[index].tenMayMoc),
-            subtitle: Text(danhSachMayMoc[index].tinhTrang),
+            subtitle: Text(danhSachMayMoc[index].ngayNhapPhieu),
             // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/themmaymoc');
-        },
-        child: Icon(Icons.add),
+     floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => themmaymoc(
+          idPhieumaymoc: widget.idPhieumaymoc,
+        ),
       ),
+    );
+  },
+  child: Icon(Icons.add),
+),
+
     );
   }
 }
@@ -245,6 +414,10 @@ class _chitietphieumaymocState extends State<chitietphieumaymoc> {
 
 
 class themmaymoc extends StatefulWidget {
+ 
+ final String idPhieumaymoc;
+  themmaymoc({required this.idPhieumaymoc});
+  
   @override
   _ThemMayMocScreenState createState() => _ThemMayMocScreenState();
 }
@@ -260,6 +433,8 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
   TextEditingController conlaicuoingay = TextEditingController();
    TextEditingController tinhtrangcuoingay = TextEditingController();
    TextEditingController thoigiannhapphieu = TextEditingController();
+     
+   
 
  @override
   void initState(){
@@ -268,11 +443,10 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
   }
   void setNgayNhapPhieu(){
      DateTime now = DateTime.now();
-
     // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
-    thoigiannhapphieu.text = "${now.day}/${now.month}/${now.year}";
+    thoigiannhapphieu.text = "${now.hour}:${now.minute}";
   }
-  Future<void> insertrecordmaymoc() async {
+  Future<void> insertrecordmaymoc(String idPhieumaymoc) async {
     if(tenmaymoc.text!="" || tinhtrang.text!= "" || tondaungay.text!=""||khachhangmaso.text!="" || soluongsudung.text!= "" || conlaicuoingay.text!=""||tinhtrangcuoingay.text!=""||thoigiannhapphieu.text!=""){
       try{
 
@@ -286,7 +460,9 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
           "soluongsudung":soluongsudung.text,
           "conlaicuoingay":conlaicuoingay.text,
           "tinhtrangcuoingay":tinhtrangcuoingay.text,
-          "ngaynhapphieu": thoigiannhapphieu.text
+          "ngaynhapphieu": thoigiannhapphieu.text,
+          "idPhieumaymoc": idPhieumaymoc,
+          
         });
         var response = jsonDecode(res.body);
         if(response["Success"]=="true"){
@@ -298,6 +474,7 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
           soluongsudung.text="";
           conlaicuoingay.text="";
           tinhtrangcuoingay.text="";
+         
         }
         else{
           print("Error!");
@@ -317,7 +494,10 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thêm máy móc'),
+         title: Text(
+          'Them máy móc: ${widget.idPhieumaymoc}',
+          style: TextStyle(fontSize: 19),
+        ),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
@@ -357,24 +537,28 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
             //   decoration: InputDecoration(labelText: 'Ngay nhap phieu'),
             //   enabled: false,
             // ),
-            ElevatedButton(
+           ElevatedButton(
               onPressed: () {
-                insertrecordmaymoc();
+                insertrecordmaymoc(widget.idPhieumaymoc);
               },
               child: Text("Thêm"),
             ),
+
           ],
        ),
       ),
     );
   }
 }
+////////////////////////////////////////////////////////// End Phieu may moc
 class dungcu extends StatelessWidget {
+  final String userId;
+  dungcu({required this.userId});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dung cu'),
+        title: Text('Dung cu' +userId),
       ),
       body: Center(
         child: Text(
@@ -387,11 +571,14 @@ class dungcu extends StatelessWidget {
 }
 
 class vatlieu extends StatelessWidget {
+  final String userId;
+
+  vatlieu({required this.userId});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Vat lieu'),
+        title: Text('Vat lieu'+userId),
       ),
       body: Center(
         child: Text(
@@ -518,6 +705,7 @@ class DangKy extends StatelessWidget{
 class DangNhap extends StatelessWidget {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
+  
 
   Future<void> login(BuildContext context) async {
     if (email.text.isNotEmpty && password.text.isNotEmpty) { // Thay đổi điều kiện ở đây
@@ -530,9 +718,12 @@ class DangNhap extends StatelessWidget {
         });
 
         var response = jsonDecode(res.body);
+ 
         if (response["Success"] == true) { // Thay đổi kiểu dữ liệu ở đây
           print("Đăng nhập thành công!");
-          Navigator.pushReplacementNamed(context, '/home'); 
+          String userId = response['uid'];
+          print('id user la: '+userId);
+          Navigator.pushReplacementNamed(context, '/home',arguments: userId,); 
           // Chuyển sang trang chính của ứng dụng nếu đăng nhập thành công
         } else {
           print("Đăng nhập thất bại!");
@@ -601,11 +792,19 @@ class DangNhap extends StatelessWidget {
 
 
 class HomeUser extends StatelessWidget {
-  final List<String> menuItems = ['doanhthucongviec', 'maymoc', 'dungcu', 'vatlieu']; // Tên các menu
+  final List<String> menuItems = ['Doanh thu công việc', 'Máy móc', 'Dụng cụ', 'Vật liệu'];
+
+  final String userId; 
+
+  HomeUser({required this.userId});
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
+     return Scaffold(
+      appBar: AppBar(
+        title: Text('Trang chủ'),
+      ),
+    body:GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2, // Hiển thị 2 cột
         crossAxisSpacing: 10.0, // Khoảng cách giữa các cột
@@ -629,11 +828,13 @@ class HomeUser extends StatelessWidget {
           ),
         );
       },
-    );
+    ),
+     );
   }
   void _navigateToMenuScreen(BuildContext context, int index) {
     // Hàm chuyển hướng khi nhấp vào menu
     String menuName = menuItems[index];
-    Navigator.pushNamed(context, '/${menuName.toLowerCase()}');
+    Navigator.pushNamed(context, '/${menuName.toLowerCase()}',arguments: userId);
   }
 }
+
