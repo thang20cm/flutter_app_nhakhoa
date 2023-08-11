@@ -17,7 +17,10 @@ void main() {
   '/máy móc': (context) => maymoc(userId: ModalRoute.of(context)!.settings.arguments as String),
   '/dụng cụ': (context) => dungcu(userId: ModalRoute.of(context)!.settings.arguments as String),
   '/vật liệu': (context) => vatlieu(userId: ModalRoute.of(context)!.settings.arguments as String),
-      '/themmaymoc': (context) => themmaymoc(idPhieumaymoc: ModalRoute.of(context)!.settings.arguments as String), // Đăng ký giao diện menu 4
+      '/themmaymoc': (context) => themmaymoc(idPhieumaymoc: ModalRoute.of(context)!.settings.arguments as String),
+      '/themdoanhthu': (context) => themdoanhthu(idPhieudoanhthu: ModalRoute.of(context)!.settings.arguments as String),
+      '/themdungcu': (context) => themdungcu(idPhieudungcu: ModalRoute.of(context)!.settings.arguments as String),
+       '/themvatlieu': (context) => themvatlieu(idPhieuvatlieu: ModalRoute.of(context)!.settings.arguments as String),  // Đăng ký giao diện menu 4
     },
   ));
 }
@@ -36,7 +39,7 @@ class _DoanhThuScreenState extends State<doanhthucongviec> {
   TextEditingController ngaynhapphieu = TextEditingController();
   
 
-  List<String> danhSachSudungMayMoc = [];
+  List<String> danhSachSudungDoanhThu = [];
 
   @override
   void initState(){
@@ -92,12 +95,12 @@ class _DoanhThuScreenState extends State<doanhthucongviec> {
 
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
-         List<String> danhSachMayMoc = data
+         List<String> danhSachDoanhThu = data
           .where((item) => item['uid'] == widget.userId) // Lọc theo uid
           .map((item) => "${item['ngayNhapPhieu']} - ${item['idPhieudoanhthu']}")
           .toList();
         setState(() {
-          this.danhSachSudungMayMoc = danhSachMayMoc;
+          this.danhSachSudungDoanhThu = danhSachDoanhThu;
         });
       } else {
         print("Lỗi khi lấy dữ liệu từ bảng phieumaymoc: ${response.statusCode}");
@@ -114,7 +117,7 @@ class _DoanhThuScreenState extends State<doanhthucongviec> {
         title: Text('Danh sách phiếu doanh thu'),
       ),
       body: ListView.builder(
-  itemCount: danhSachSudungMayMoc.length,
+  itemCount: danhSachSudungDoanhThu.length,
   itemBuilder: (context, index) {
     return InkWell(
       onTap: () async {
@@ -124,13 +127,13 @@ class _DoanhThuScreenState extends State<doanhthucongviec> {
           context,
           MaterialPageRoute(
             builder:(context) =>
-            chitietphieudoanhthu(ngayPhieu: danhSachSudungMayMoc[index],idPhieumaymoc:danhSachSudungMayMoc[index].split(' - ')[1],
+            chitietphieudoanhthu(ngayPhieu: danhSachSudungDoanhThu[index],idPhieudoanhthu:danhSachSudungDoanhThu[index].split(' - ')[1],
            ),
           ),
         );
       },
       child: ListTile(
-        title: Text(danhSachSudungMayMoc[index]), // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+        title: Text(danhSachSudungDoanhThu[index]), // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
       ),
     );
   },
@@ -139,6 +142,14 @@ class _DoanhThuScreenState extends State<doanhthucongviec> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           themphieudoanhthu();
+           ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+        content: Text('Thêm thành công!'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+        backgroundColor: Colors.green, // Thay đổi màu nền
+      ),
+    );
         },
         child: Icon(Icons.add),
       ),
@@ -148,25 +159,29 @@ class _DoanhThuScreenState extends State<doanhthucongviec> {
 
 // Chua xong......
 class DoanhThuData {
-  String tenMayMoc;
-  String tinhTrang;
-  String ngayNhapPhieu;
- String idChitietPhieumaymoc;
+  String Thoigiannhanviec;
+  String Khachhangmaso;
+  String Noidung;
+ String Namesanpham;
+ String Soluong;
+ String idphieudoanhthuu;
 
   DoanhThuData({
-    required this.tenMayMoc,
-    required this.tinhTrang,
-    required this.ngayNhapPhieu,
-    required this.idChitietPhieumaymoc,
+    required this.Thoigiannhanviec,
+    required this.Khachhangmaso,
+    required this.Noidung,
+    required this.Namesanpham,
+    required this.Soluong,
+    required this.idphieudoanhthuu,
   });
 }
 
 class chitietphieudoanhthu extends StatefulWidget {
   final String ngayPhieu;
-  final String idPhieumaymoc;
+  final String idPhieudoanhthu;
 
 
-  chitietphieudoanhthu({required this.ngayPhieu,required this.idPhieumaymoc});
+  chitietphieudoanhthu({required this.ngayPhieu,required this.idPhieudoanhthu});
 
   @override
   _chitietphieudoanhthuState createState() => _chitietphieudoanhthuState();
@@ -183,20 +198,23 @@ class _chitietphieudoanhthuState extends State<chitietphieudoanhthu> {
 
   Future<void> fetchDataSudungDoanhThu() async {
     try {
-      String uri = "http://buffquat13.000webhostapp.com/get_phieudoanhthu.php";
+      String uri = "http://buffquat13.000webhostapp.com/get_doanhthu.php";
       var response = await http.get(Uri.parse(uri));
 
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
         List<DoanhThuData> doanhThuList = data.map((item) => DoanhThuData(
-              tenMayMoc: item['tenMayMoc'],
-              tinhTrang: item['tinhtrangCuoiNgay'],
-              ngayNhapPhieu: item['ngayNhapPhieu'],
-              idChitietPhieumaymoc: item['idPhieumaymoc'],
+              idphieudoanhthuu: item['idPhieudoanhthu'],
+              Thoigiannhanviec: item['Thoigiannhanviec'],
+              Khachhangmaso: item['KhachangMaso'],
+              Noidung: item['Noidung'],
+              Namesanpham: item['Tensanpham'],
+              Soluong: item['Soluong'],
+             
             )).toList();
 
         setState(() {
-          danhSachDoanhThu = doanhThuList.where((doanhThu) => doanhThu.idChitietPhieumaymoc == widget.idPhieumaymoc).toList();
+          danhSachDoanhThu = doanhThuList.where((doanhThu) => doanhThu.idphieudoanhthuu == widget.idPhieudoanhthu).toList();
         });
       } else {
         print("Lỗi khi lấy dữ liệu từ bảng sudungmaymoc: ${response.statusCode}");
@@ -207,43 +225,174 @@ class _chitietphieudoanhthuState extends State<chitietphieudoanhthu> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Phiếu doanh thu: ${widget.ngayPhieu}',
-          style: TextStyle(fontSize: 19),
-        ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        'Phiếu doanh thu: ${widget.ngayPhieu}',
+        style: TextStyle(fontSize: 19),
       ),
-      body: ListView.builder(
-        itemCount: danhSachDoanhThu.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(danhSachDoanhThu[index].tenMayMoc),
-            subtitle: Text(danhSachDoanhThu[index].ngayNhapPhieu),
-            // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+    ),
+    body: ListView.builder(
+      itemCount: danhSachDoanhThu.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(danhSachDoanhThu[index].Thoigiannhanviec),
+          subtitle: Text(danhSachDoanhThu[index].Namesanpham),
+          // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+        );
+      },
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () async {
+        bool success = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => themdoanhthu(
+              idPhieudoanhthu: widget.idPhieudoanhthu,
+            ),
+          ),
+        );
+        if (success == true) {
+          fetchDataSudungDoanhThu();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Thêm thành công!'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+              backgroundColor: Colors.green, // Thay đổi màu nền
+            ),
           );
-        },
-      ),
-     floatingActionButton: FloatingActionButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => themmaymoc(
-          idPhieumaymoc: widget.idPhieumaymoc,
-        ),
-      ),
-    );
-  },
-  child: Icon(Icons.add),
-),
+        }
+      },
+      child: Icon(Icons.add),
+    ),
+  );
+}
 
-    );
-  }
 }
 
 
+
+class themdoanhthu extends StatefulWidget {
+ 
+ final String idPhieudoanhthu;
+  themdoanhthu({required this.idPhieudoanhthu});
+  
+  @override
+  _ThemDoanhThuScreenState createState() => _ThemDoanhThuScreenState();
+}
+
+
+class _ThemDoanhThuScreenState extends State<themdoanhthu>{
+
+        TextEditingController khachhangmaso = TextEditingController();
+        TextEditingController noidung = TextEditingController();
+        TextEditingController tensanpham = TextEditingController();
+        TextEditingController soluong = TextEditingController();
+        TextEditingController thoigiannhanviec = TextEditingController();
+   
+
+ @override
+  void initState(){
+    super.initState();
+    setNgayNhapPhieu();
+  }
+  void setNgayNhapPhieu(){
+     DateTime now = DateTime.now();
+    // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
+    thoigiannhanviec.text = "${now.hour}:${now.minute}";
+  }
+  Future<void> insertrecorddoanhthu(String idPhieudoanhthu) async {
+    if(khachhangmaso.text!="" || noidung.text!= "" || tensanpham.text!=""||soluong.text!=""){
+      try{
+
+        String uri = "http://buffquat13.000webhostapp.com/doanhthu.php";
+
+        var res=await http.post(Uri.parse(uri),body: {
+           "idPhieudoanhthu": idPhieudoanhthu,
+          "thoigiannhanviec":thoigiannhanviec.text,
+          "khachhangmaso":khachhangmaso.text,
+          "noidung":noidung.text,
+          "tensanpham":tensanpham.text,
+          "soluong":soluong.text,
+         
+          
+        });
+        var response = jsonDecode(res.body);
+        if(response["Success"]=="true"){
+          print("Them doanh thu thanh cong!");
+          khachhangmaso.text="";
+          noidung.text="";
+          tensanpham.text="";
+          soluong.text="";
+
+          Navigator.pop(context, true);
+         
+        }
+        else{
+          print("Error!");
+        }
+      }
+      catch(e){
+        print(e);
+      }
+
+    }
+    else{
+      print("Lam on dien vao o trong");
+    }
+  }
+
+ 
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+         title: Text(
+          'Thêm tiến trình doanh thu: ${widget.idPhieudoanhthu}',
+          style: TextStyle(fontSize: 19),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: khachhangmaso,
+              decoration: InputDecoration(labelText: 'Khách hàng - Mã số'),
+            ),
+            TextFormField(
+              controller: noidung,
+              decoration: InputDecoration(labelText: 'Nội dung'),
+            ),
+            TextFormField(
+              controller: tensanpham,
+              decoration: InputDecoration(labelText: 'Tên sản phẩm'),
+            ),
+             TextFormField(
+              controller: soluong,
+              decoration: InputDecoration(labelText: 'Số lượng'),
+            ),
+          
+            // TextFormField(
+            //   controller: ngaynhapphieu,
+            //   decoration: InputDecoration(labelText: 'Ngay nhap phieu'),
+            //   enabled: false,
+            // ),
+           ElevatedButton(
+              onPressed: () {
+                insertrecorddoanhthu(widget.idPhieudoanhthu);
+              },
+              child: Text("Thêm"),
+            ),
+
+          ],
+       ),
+      ),
+    );
+  }
+}
 
 ////////////////////////////////////////////////////////// Start Phieu may moc
 class maymoc extends StatefulWidget {
@@ -363,6 +512,14 @@ class _MayMocScreenState extends State<maymoc> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           themphieumaymoc();
+             ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+        content: Text('Thêm thành công!'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+        backgroundColor: Colors.green, // Thay đổi màu nền
+      ),
+    );
         },
         child: Icon(Icons.add),
       ),
@@ -449,19 +606,30 @@ class _chitietphieumaymocState extends State<chitietphieumaymoc> {
           );
         },
       ),
-     floatingActionButton: FloatingActionButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => themmaymoc(
-          idPhieumaymoc: widget.idPhieumaymoc,
-        ),
-      ),
-    );
-  },
-  child: Icon(Icons.add),
-),
+        floatingActionButton: FloatingActionButton(
+      onPressed: () async {
+        bool success = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => themmaymoc(
+              idPhieumaymoc: widget.idPhieumaymoc,
+            ),
+          ),
+        );
+        if (success == true) {
+          fetchDataSudungMayMoc();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Thêm thành công!'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+              backgroundColor: Colors.green, // Thay đổi màu nền
+            ),
+          );
+        }
+      },
+      child: Icon(Icons.add),
+    ),
 
     );
   }
@@ -533,7 +701,9 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
           soluongsudung.text="";
           conlaicuoingay.text="";
           tinhtrangcuoingay.text="";
-         
+
+         Navigator.pop(context, true);
+
         }
         else{
           print("Error!");
@@ -610,55 +780,766 @@ class _ThemMayMocScreenState extends State<themmaymoc>{
   }
 }
 ////////////////////////////////////////////////////////// End Phieu may moc
-class dungcu extends StatelessWidget {
+
+////////////////////////////////////////// Start Dụng cụ
+class dungcu extends StatefulWidget {
   final String userId;
+
   dungcu({required this.userId});
+  @override
+  _DungCuScreenState createState() => _DungCuScreenState();
+
+}
+
+class _DungCuScreenState extends State<dungcu> {
+
+  TextEditingController ngaynhapphieu = TextEditingController();
+  
+
+  List<String> danhSachSudungDungCu = [];
+
+  @override
+  void initState(){
+    super.initState();
+    setNgayNhapPhieu();
+    getphieudungcu();
+  }
+  void setNgayNhapPhieu(){
+     DateTime now = DateTime.now();
+
+    // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
+    ngaynhapphieu.text = "${now.day}/${now.month}/${now.year}";
+    
+  }
+
+ Future<void> themphieudungcu() async {
+    if(ngaynhapphieu.text!=""){
+      try{
+
+        String uri = "http://buffquat13.000webhostapp.com/themphieudungcu.php";
+
+        var res=await http.post(Uri.parse(uri),body: {
+          "ngaynhapphieu":ngaynhapphieu.text,
+          "uid":widget.userId,
+         
+        });
+        var response = jsonDecode(res.body);
+        if(response["Success"]=="true"){
+      
+          print("Them phieu may moc thanh cong!");
+          ngaynhapphieu.text="";
+        }
+        else{
+          print("Error!");
+        }
+      }
+      catch(e){
+        print(e);
+      }
+
+    }
+    else{
+      print("Lam on dien vao o trong");
+    }
+    getphieudungcu();
+    
+  }
+
+  Future<void> getphieudungcu() async {
+    try {
+      String uri = "http://buffquat13.000webhostapp.com/get_phieudungcu.php";
+      var response = await http.get(Uri.parse(uri));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+         List<String> danhSachDungCu = data
+          .where((item) => item['uid'] == widget.userId) // Lọc theo uid
+          .map((item) => "${item['Ngaynhapphieu']} - ${item['idPhieudungcu']}")
+          .toList();
+        setState(() {
+          this.danhSachSudungDungCu = danhSachDungCu;
+        });
+      } else {
+        print("Lỗi khi lấy dữ liệu từ bảng phieumaymoc: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi khi lấy dữ liệu từ bảng phieumaymoc: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dung cu' +userId),
+        title: Text('Danh sách phiếu doanh thu'),
       ),
-      body: Center(
-        child: Text(
-          'Chào mừng bạn đến Dung cu!',
-          style: TextStyle(fontSize: 24),
-        ),
+      body: ListView.builder(
+  itemCount: danhSachSudungDungCu.length,
+  itemBuilder: (context, index) {
+    return InkWell(
+      onTap: () async {
+       
+        // Chuyển hướng tới trang chitietphieumaymoc khi nhấn vào phần tử trong RecyclerView
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:(context) =>
+            chitietphieudungcu(ngayPhieu: danhSachSudungDungCu[index],idPhieudungcu:danhSachSudungDungCu[index].split(' - ')[1],
+           ),
+          ),
+        );
+      },
+      child: ListTile(
+        title: Text(danhSachSudungDungCu[index]), // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+      ),
+    );
+  },
+),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          themphieudungcu();
+             ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+        content: Text('Thêm thành công!'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+        backgroundColor: Colors.green, // Thay đổi màu nền
+      ),
+    );
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
 }
 
-class vatlieu extends StatelessWidget {
+
+class DungCuData {
+  String Tensanpham;
+  String Tondaungay;
+  String Soluongsudung;
+ String Conlaicuoingay;
+ String idphieudungcuu;
+
+  DungCuData({
+    required this.Tensanpham,
+    required this.Tondaungay,
+    required this.Soluongsudung,
+    required this.Conlaicuoingay,
+    required this.idphieudungcuu,
+  });
+}
+
+class chitietphieudungcu extends StatefulWidget {
+  final String ngayPhieu;
+  final String idPhieudungcu;
+
+
+  chitietphieudungcu({required this.ngayPhieu,required this.idPhieudungcu});
+
+  @override
+  _chitietphieudungcuState createState() => _chitietphieudungcuState();
+}
+
+class _chitietphieudungcuState extends State<chitietphieudungcu> {
+  List<DungCuData> danhSachDungCu = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDataSudungDungCu();
+  }
+
+  Future<void> fetchDataSudungDungCu() async {
+    try {
+      String uri = "http://buffquat13.000webhostapp.com/get_dungcu.php";
+      var response = await http.get(Uri.parse(uri));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<DungCuData> dungCuList = data.map((item) => DungCuData(
+              idphieudungcuu: item['idPhieudungcu'],
+              Tensanpham: item['Tensp'],
+              Tondaungay: item['Tondaungay'],
+              Soluongsudung: item['Soluongsudung'],
+              Conlaicuoingay: item['Conlaicuoingay'],
+             
+            )).toList();
+
+        setState(() {
+          danhSachDungCu = dungCuList.where((dungcu) => dungcu.idphieudungcuu == widget.idPhieudungcu).toList();
+        });
+      } else {
+        print("Lỗi khi lấy dữ liệu từ bảng sudungmaymoc: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi khi lấy dữ liệu từ bảng sudungmaymoc: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Phiếu doanh thu: ${widget.ngayPhieu}',
+          style: TextStyle(fontSize: 19),
+        ),
+      ),
+      body: ListView.builder(
+        itemCount: danhSachDungCu.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(danhSachDungCu[index].Tensanpham),
+            subtitle: Text(danhSachDungCu[index].Conlaicuoingay),
+            
+            // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+          );
+        },
+      ),
+          floatingActionButton: FloatingActionButton(
+      onPressed: () async {
+        bool success = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => themdungcu(
+              idPhieudungcu: widget.idPhieudungcu,
+            ),
+          ),
+        );
+        if (success == true) {
+          fetchDataSudungDungCu();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Thêm thành công!'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+              backgroundColor: Colors.green, // Thay đổi màu nền
+            ),
+          );
+        }
+      },
+      child: Icon(Icons.add),
+    ),
+
+
+    );
+  }
+}
+
+
+
+class themdungcu extends StatefulWidget {
+ 
+ final String idPhieudungcu;
+  themdungcu({required this.idPhieudungcu});
+  
+  @override
+  _ThemDungCuScreenState createState() => _ThemDungCuScreenState();
+}
+
+
+class _ThemDungCuScreenState extends State<themdungcu>{
+
+        TextEditingController thoigiannhapphieu = TextEditingController();
+        TextEditingController tensanpham = TextEditingController();
+        TextEditingController tondaungay = TextEditingController();
+        TextEditingController soluongsudung = TextEditingController();
+        TextEditingController conlaicuoingay = TextEditingController();
+       
+   
+
+ @override
+  void initState(){
+    super.initState();
+    setNgayNhapPhieu();
+  }
+  void setNgayNhapPhieu(){
+     DateTime now = DateTime.now();
+    // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
+    thoigiannhapphieu.text = "${now.hour}:${now.minute}";
+  }
+  Future<void> insertrecorddungcu(String idPhieudungcu) async {
+    if(tensanpham.text!="" || tondaungay.text!= "" || soluongsudung.text!=""||conlaicuoingay.text!=""){
+      try{
+
+        String uri = "http://buffquat13.000webhostapp.com/dungcu.php";
+
+        var res=await http.post(Uri.parse(uri),body: {
+            "idPhieudungcu": idPhieudungcu,
+            "thoigiannhapphieu":thoigiannhapphieu.text,
+            "tensp":tensanpham.text,
+            "tondaungay":tondaungay.text,
+            "soluongsudung":soluongsudung.text,
+            "conlaicuoingay":conlaicuoingay.text,
+         
+          
+        });
+        var response = jsonDecode(res.body);
+        if(response["Success"]=="true"){
+          print("Them doanh thu thanh cong!");
+          tensanpham.text="";
+          tondaungay.text="";
+          soluongsudung.text="";
+          conlaicuoingay.text="";
+
+          Navigator.pop(context,true);
+        }
+        else{
+          print("Error!");
+        }
+      }
+      catch(e){
+        print(e);
+      }
+
+    }
+    else{
+      print("Lam on dien vao o trong");
+    }
+  }
+
+ 
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+         title: Text(
+          'Thêm tiến trình doanh thu: ${widget.idPhieudungcu}',
+          style: TextStyle(fontSize: 19),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: tensanpham,
+              decoration: InputDecoration(labelText: 'Tên sản phẩm'),
+            ),
+            TextFormField(
+              controller: tondaungay,
+              decoration: InputDecoration(labelText: 'Tồn đầu ngày'),
+            ),
+            TextFormField(
+              controller: soluongsudung,
+              decoration: InputDecoration(labelText: 'Số lượng sử dụng'),
+            ),
+             TextFormField(
+              controller: conlaicuoingay,
+              decoration: InputDecoration(labelText: 'Còn lại cuối ngày'),
+            ),
+          
+            // TextFormField(
+            //   controller: ngaynhapphieu,
+            //   decoration: InputDecoration(labelText: 'Ngay nhap phieu'),
+            //   enabled: false,
+            // ),
+           ElevatedButton(
+              onPressed: () {
+                insertrecorddungcu(widget.idPhieudungcu);
+              },
+              child: Text("Thêm"),
+            ),
+
+          ],
+       ),
+      ),
+    );
+  }
+}
+
+
+//////////////////////////////////////////////// End dụng cụ
+
+///////////////////////////////////////////// Start Vật liệu
+class vatlieu extends StatefulWidget {
   final String userId;
 
   vatlieu({required this.userId});
   @override
+  _VatLieuScreenState createState() => _VatLieuScreenState();
+
+}
+
+class _VatLieuScreenState extends State<vatlieu> {
+
+  TextEditingController ngaynhapphieu = TextEditingController();
+  
+
+  List<String> danhSachSudungVatLieu = [];
+
+  @override
+  void initState(){
+    super.initState();
+    setNgayNhapPhieu();
+    getphieuvatlieu();
+  }
+  void setNgayNhapPhieu(){
+     DateTime now = DateTime.now();
+
+    // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
+    ngaynhapphieu.text = "${now.day}/${now.month}/${now.year}";
+    
+  }
+
+ Future<void> themphieuvatlieu() async {
+    if(ngaynhapphieu.text!=""){
+      try{
+
+        String uri = "http://buffquat13.000webhostapp.com/themphieuvatlieu.php";
+
+        var res=await http.post(Uri.parse(uri),body: {
+          "ngaynhapphieu":ngaynhapphieu.text,
+          "uid":widget.userId,
+         
+        });
+        var response = jsonDecode(res.body);
+        if(response["Success"]=="true"){
+      
+          print("Them phieu may moc thanh cong!");
+          ngaynhapphieu.text="";
+        }
+        else{
+          print("Error!");
+        }
+      }
+      catch(e){
+        print(e);
+      }
+
+    }
+    else{
+      print("Lam on dien vao o trong");
+    }
+    getphieuvatlieu();
+    
+  }
+
+  Future<void> getphieuvatlieu() async {
+    try {
+      String uri = "http://buffquat13.000webhostapp.com/get_phieuvatlieu.php";
+      var response = await http.get(Uri.parse(uri));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+         List<String> danhSachVatLieu = data
+          .where((item) => item['uid'] == widget.userId) // Lọc theo uid
+          .map((item) => "${item['Ngaynhapphieu']} - ${item['idPhieuvatlieu']}")
+          .toList();
+        setState(() {
+          this.danhSachSudungVatLieu = danhSachVatLieu;
+        });
+      } else {
+        print("Lỗi khi lấy dữ liệu từ bảng phieumaymoc: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi khi lấy dữ liệu từ bảng phieumaymoc: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Vat lieu'+userId),
+        title: Text('Danh sách phiếu vật liệu'),
       ),
-      body: Center(
-        child: Text(
-          'Chào mừng bạn đến Vat lieu!',
-          style: TextStyle(fontSize: 24),
-        ),
+      body: ListView.builder(
+  itemCount: danhSachSudungVatLieu.length,
+  itemBuilder: (context, index) {
+    return InkWell(
+      onTap: () async {
+       
+        // Chuyển hướng tới trang chitietphieumaymoc khi nhấn vào phần tử trong RecyclerView
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:(context) =>
+            chitietphieuvatlieu(ngayPhieu: danhSachSudungVatLieu[index],idPhieuvatlieu:danhSachSudungVatLieu[index].split(' - ')[1],
+           ),
+          ),
+        );
+      },
+      child: ListTile(
+        title: Text(danhSachSudungVatLieu[index]), // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+      ),
+    );
+  },
+),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          themphieuvatlieu();
+             ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+        content: Text('Thêm thành công!'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+        backgroundColor: Colors.green, // Thay đổi màu nền
+      ),
+    );
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
 }
-// class MyHomePage extends StatefulWidget {
-//   const MyHomePage({super.key, required this.title});
+
+
+class VatLieuData {
+  String Thoigiannhapphieu;
+  String Tensanpham;
+  String Tondaungay;
+  String Khachhangmaso;
+  String Soluongsudung;
+ String Conlaicuoingay;
+ String idphieuvatlieuu;
+
+  VatLieuData({
+    required this.Thoigiannhapphieu,
+    required this.Tensanpham,
+    required this.Tondaungay,
+    required this.Khachhangmaso,
+    required this.Soluongsudung,
+    required this.Conlaicuoingay,
+    required this.idphieuvatlieuu,
+  });
+}
+
+class chitietphieuvatlieu extends StatefulWidget {
+  final String ngayPhieu;
+  final String idPhieuvatlieu;
+
+
+  chitietphieuvatlieu({required this.ngayPhieu,required this.idPhieuvatlieu});
+
+  @override
+  _chitietphieuvatlieuState createState() => _chitietphieuvatlieuState();
+}
+
+class _chitietphieuvatlieuState extends State<chitietphieuvatlieu> {
+ 
 
 
 
-//   final String title;
+  List<VatLieuData> danhSachVatLieu = [];
 
-//   @override
-//   State<MyHomePage> createState() => _MyHomePageState();
-// }
+  @override
+  void initState(){
+    super.initState();
+    fetchDataSudungVatLieu();
+  }
 
+  Future<void> fetchDataSudungVatLieu() async {
+    try {
+      String uri = "http://buffquat13.000webhostapp.com/get_vatlieu.php";
+      var response = await http.get(Uri.parse(uri));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<VatLieuData> vatLieuList = data.map((item) => VatLieuData(
+              idphieuvatlieuu: item['idPhieuvatlieu'],
+              Thoigiannhapphieu: item['Thoigiannhapphieu'],
+              Tensanpham: item['Tensp'],
+              Tondaungay: item['Tondaungay'],
+              Khachhangmaso: item['KhachangMaso'],
+              Soluongsudung: item['Soluongsudung'],
+              Conlaicuoingay: item['Conlaicuoingay'], 
+            )).toList();
+
+        setState(() {
+          danhSachVatLieu = vatLieuList.where((vatlieu) => vatlieu.idphieuvatlieuu == widget.idPhieuvatlieu).toList();
+        });
+      } else {
+        print("Lỗi khi lấy dữ liệu từ bảng sudungvatlieu: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi khi lấy dữ liệu từ bảng sudungvatlieu: $e");
+    }
+  }
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        'Phiếu vật liệu: ${widget.ngayPhieu}',
+        style: TextStyle(fontSize: 19),
+      ),
+    ),
+    body: ListView.builder(
+      itemCount: danhSachVatLieu.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(danhSachVatLieu[index].Thoigiannhapphieu),
+          subtitle: Text(danhSachVatLieu[index].Tensanpham),
+          // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+        );
+      },
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () async {
+        bool success = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => themvatlieu(
+              idPhieuvatlieu: widget.idPhieuvatlieu,
+            ),
+          ),
+        );
+        if (success == true) {
+          fetchDataSudungVatLieu();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Thêm thành công!'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating, // Hiển thị phía trên
+              backgroundColor: Colors.green, // Thay đổi màu nền
+            ),
+          );
+        }
+      },
+      child: Icon(Icons.add),
+    ),
+  );
+}
+
+}
+
+
+
+
+class themvatlieu extends StatefulWidget {
+ 
+ final String idPhieuvatlieu;
+  themvatlieu({required this.idPhieuvatlieu});
+  
+  @override
+  _ThemVatLieuScreenState createState() => _ThemVatLieuScreenState();
+}
+
+
+class _ThemVatLieuScreenState extends State<themvatlieu>{
+
+        TextEditingController thoigiannhapphieu = TextEditingController();
+        TextEditingController tensanpham = TextEditingController();
+        TextEditingController tondaungay = TextEditingController();
+        TextEditingController khachhangmaso = TextEditingController();
+        TextEditingController soluongsudung = TextEditingController();
+        TextEditingController conlaicuoingay = TextEditingController();
+       
+     
+   
+
+ @override
+  void initState(){
+    super.initState();
+    setNgayNhapPhieu();
+  }
+  void setNgayNhapPhieu(){
+     DateTime now = DateTime.now();
+    // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
+    thoigiannhapphieu.text = "${now.hour}:${now.minute}";
+  }
+  Future<void> insertrecordvatlieu(String idPhieuvatlieu) async {
+    if(tensanpham.text!="" || tondaungay.text!= "" || soluongsudung.text!=""||conlaicuoingay.text!=""||khachhangmaso!=""){
+      try{
+
+        String uri = "http://buffquat13.000webhostapp.com/vatlieu.php";
+
+        var res=await http.post(Uri.parse(uri),body: {
+            "idPhieuvatlieu": idPhieuvatlieu,
+            "thoigiannhapphieu":thoigiannhapphieu.text,
+            "tensp":tensanpham.text,
+            "tondaungay":tondaungay.text,
+            "khachhangmaso":khachhangmaso.text,
+            "soluongsudung":soluongsudung.text,
+            "conlaicuoingay":conlaicuoingay.text,
+         
+          
+        });
+        var response = jsonDecode(res.body);
+        if(response["Success"]=="true"){
+          print("Them vật liệu thanh cong!");
+          tensanpham.text="";
+          tondaungay.text="";
+          khachhangmaso.text="";
+          soluongsudung.text="";
+          conlaicuoingay.text="";
+      
+         Navigator.pop(context, true);
+        }
+        else{
+          print("Lỗi!");
+        }
+      }
+      catch(e){
+        print(e);
+      }
+
+    }
+    else{
+      print("Lam on dien vao o trong");
+    }
+  }
+
+ 
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+         title: Text(
+          'Thêm tiến trình vật liệu: ${widget.idPhieuvatlieu}',
+          style: TextStyle(fontSize: 19),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: tensanpham,
+              decoration: InputDecoration(labelText: 'Tên sản phẩm'),
+            ),
+            TextFormField(
+              controller: tondaungay,
+              decoration: InputDecoration(labelText: 'Tồn đầu ngày'),
+            ),
+             TextFormField(
+              controller: khachhangmaso,
+              decoration: InputDecoration(labelText: 'Khách hàng mã số'),
+            ),
+            TextFormField(
+              controller: soluongsudung,
+              decoration: InputDecoration(labelText: 'Số lượng sử dụng'),
+            ),
+             TextFormField(
+              controller: conlaicuoingay,
+              decoration: InputDecoration(labelText: 'Còn lại cuối ngày'),
+            ),
+          
+            // TextFormField(
+            //   controller: ngaynhapphieu,
+            //   decoration: InputDecoration(labelText: 'Ngay nhap phieu'),
+            //   enabled: false,
+            // ),
+           ElevatedButton(
+              onPressed: () {
+                insertrecordvatlieu(widget.idPhieuvatlieu);
+              },
+              child: Text("Thêm"),
+            ),
+
+          ],
+       ),
+      ),
+    );
+  }
+}
+
+
+///////////////////////////////////////////// End Vật liệu
 class DangKy extends StatelessWidget{
 
   TextEditingController name = TextEditingController();
@@ -761,13 +1642,19 @@ class DangKy extends StatelessWidget{
 
 
 
-class DangNhap extends StatelessWidget {
+class DangNhap extends StatefulWidget {
+  @override
+  _DangNhapState createState() => _DangNhapState();
+}
+
+class _DangNhapState extends State<DangNhap> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
-  
+  bool showError = false;
+  String errorMessage = "";
 
   Future<void> login(BuildContext context) async {
-    if (email.text.isNotEmpty && password.text.isNotEmpty) { // Thay đổi điều kiện ở đây
+    if (email.text.isNotEmpty && password.text.isNotEmpty) {
       try {
         String uri = "http://buffquat13.000webhostapp.com/login.php";
 
@@ -777,18 +1664,21 @@ class DangNhap extends StatelessWidget {
         });
 
         var response = jsonDecode(res.body);
- 
-        if (response["Success"] == true) { // Thay đổi kiểu dữ liệu ở đây
+
+        if (response["Success"] == true) {
           print("Đăng nhập thành công!");
           String userId = response['uid'];
-          print('id user la: '+userId);
-          Navigator.pushReplacementNamed(context, '/home',arguments: userId,); 
-          // Chuyển sang trang chính của ứng dụng nếu đăng nhập thành công
+          print('id user la: ' + userId);
+          Navigator.pushReplacementNamed(context, '/home', arguments: userId);
         } else {
-          print("Đăng nhập thất bại!");
+          print("Đăng nhập thất bại: ${response["Message"]}");
+          setState(() {
+            showError = true;
+            errorMessage = response["Message"];
+          });
         }
       } catch (e) {
-        print("Lỗi: $e"); // In ra thông báo lỗi chi tiết
+        print("Lỗi: $e");
       }
     } else {
       print("Làm ơn điền vào ô trống");
@@ -841,11 +1731,20 @@ class DangNhap extends StatelessWidget {
               child: Text('Dang ky'),
             ),
           ),
+          Visibility(
+            visible: showError,
+            child: SnackBar(
+              content: Text(errorMessage),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.red,
+            ),
+          ),
         ],
       ),
     );
   }
 }
+
 
 //Trang Home
 
@@ -881,16 +1780,26 @@ class _HomeUserState extends State<HomeUser> {
         itemCount: menuItems.length + 2, // Thêm 2 nút
         itemBuilder: (context, index) {
           if (index == menuItems.length) {
-            return ElevatedButton(
-              onPressed: isWorking ? null : () => startWorkTime(),
-              child: Text("Bắt đầu làm việc"),
-            );
-          } else if (index == menuItems.length + 1) {
-            return ElevatedButton(
-              onPressed: isEndButtonDisabled ? null : () => showEndConfirmation(),
-              child: Text("Kết thúc làm việc"),
-            );
-          } else {
+          return ElevatedButton(
+            onPressed: isWorking ? null : () {
+            startWorkTime();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Đã bắt đầu giờ làm việc!'),
+                duration: Duration(seconds: 2),
+            ),
+          );
+        },
+          child: Text("Bắt đầu làm việc"),
+  );
+} else if (index == menuItems.length + 1) {
+  return ElevatedButton(
+    onPressed: isEndButtonDisabled ? null : () => showEndConfirmation(),
+    
+    child: Text("Kết thúc làm việc"),
+  );
+}
+ else {
             return GestureDetector(
               onTap: () {
                 _navigateToMenuScreen(context, index);
@@ -975,6 +1884,14 @@ class _HomeUserState extends State<HomeUser> {
               child: Text('Có'),
               onPressed: () {
                 Navigator.of(context).pop(true);
+                ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+          content: Text('Đã kết thúc giờ làm việc!'),
+          duration: Duration(seconds: 2),
+         backgroundColor: Colors.purpleAccent, // Màu tím nhạt
+
+        ),
+      );
               },
             ),
           ],
