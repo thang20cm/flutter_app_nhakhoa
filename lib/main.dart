@@ -26,72 +26,63 @@ class doanhthucongviec extends StatefulWidget {
   final String userId;
 
   doanhthucongviec({required this.userId});
-
   @override
   _DoanhThuScreenState createState() => _DoanhThuScreenState();
+
 }
 
 class _DoanhThuScreenState extends State<doanhthucongviec> {
+
   TextEditingController ngaynhapphieu = TextEditingController();
+  
+
   List<String> danhSachSudungMayMoc = [];
-  TextEditingController batdau = TextEditingController();
-  TextEditingController ketthuc = TextEditingController();
-  DateTime? startTime;
-  DateTime? endTime;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     setNgayNhapPhieu();
     getphieudoanhthu();
   }
+  void setNgayNhapPhieu(){
+     DateTime now = DateTime.now();
 
-  void setNgayNhapPhieu() {
-    DateTime now = DateTime.now();
+    // Gán giá trị ngày tháng năm vào trường ngaynhapphieu
     ngaynhapphieu.text = "${now.day}/${now.month}/${now.year}";
+    
   }
 
-void startWorkTime() {
-  setState(() {
-    DateTime now = DateTime.now();
-    startTime = DateTime(now.hour);
-    
-  });
-}
+ Future<void> themphieudoanhthu() async {
+    if(ngaynhapphieu.text!=""){
+      try{
 
-void endWorkTime() {
-  setState(() {
-    DateTime now = DateTime.now();
-    endTime = DateTime(now.hour);
-  });
-}
-
-
-  Future<void> themphieudoanhthu(DateTime startTime, DateTime endTime) async {
-    if (ngaynhapphieu.text != "") {
-      try {
         String uri = "http://buffquat13.000webhostapp.com/themphieudoanhthu.php";
 
-        var res = await http.post(Uri.parse(uri), body: {
-          "ngaynhapphieu": ngaynhapphieu.text,
-          "uid": widget.userId,
-          "batdaugiolamviec": startTime.toString(), // Lưu thời gian bắt đầu
-          "ketthucgiolamviec": endTime.toString(), // Lưu thời gian kết thúc
+        var res=await http.post(Uri.parse(uri),body: {
+          "ngaynhapphieu":ngaynhapphieu.text,
+          "uid":widget.userId,
+         
         });
         var response = jsonDecode(res.body);
-        if (response["Success"] == "true") {
+        if(response["Success"]=="true"){
+      
           print("Them phieu may moc thanh cong!");
-          ngaynhapphieu.text = "";
-        } else {
+          ngaynhapphieu.text="";
+        }
+        else{
           print("Error!");
         }
-      } catch (e) {
+      }
+      catch(e){
         print(e);
       }
-    } else {
+
+    }
+    else{
       print("Lam on dien vao o trong");
     }
     getphieudoanhthu();
+    
   }
 
   Future<void> getphieudoanhthu() async {
@@ -101,20 +92,18 @@ void endWorkTime() {
 
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
-        List<String> danhSachMayMoc = data
-            .where((item) => item['uid'] == widget.userId)
-            .map((item) =>
-                "${item['ngayNhapPhieu']} - ${item['idPhieudoanhthu']}")
-            .toList();
+         List<String> danhSachMayMoc = data
+          .where((item) => item['uid'] == widget.userId) // Lọc theo uid
+          .map((item) => "${item['ngayNhapPhieu']} - ${item['idPhieudoanhthu']}")
+          .toList();
         setState(() {
           this.danhSachSudungMayMoc = danhSachMayMoc;
         });
       } else {
-        print(
-            "Lỗi khi lấy dữ liệu từ bảng doanh thu cv: ${response.statusCode}");
+        print("Lỗi khi lấy dữ liệu từ bảng phieumaymoc: ${response.statusCode}");
       }
     } catch (e) {
-      print("Lỗi khi lấy dữ liệu từ bảng doanh thu cv: $e");
+      print("Lỗi khi lấy dữ liệu từ bảng phieumaymoc: $e");
     }
   }
 
@@ -122,64 +111,134 @@ void endWorkTime() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Danh sách phiếu doanh thu cv'),
+        title: Text('Danh sách phiếu doanh thu'),
       ),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  startWorkTime();
-                },
-                child: Text("Bắt đầu giờ làm việc"),
-              ),
-              SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: () {
-                  endWorkTime();
-                },
-                child: Text("Kết thúc giờ làm việc"),
-              ),
-            ],
+      body: ListView.builder(
+  itemCount: danhSachSudungMayMoc.length,
+  itemBuilder: (context, index) {
+    return InkWell(
+      onTap: () async {
+       
+        // Chuyển hướng tới trang chitietphieumaymoc khi nhấn vào phần tử trong RecyclerView
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:(context) =>
+            chitietphieudoanhthu(ngayPhieu: danhSachSudungMayMoc[index],idPhieumaymoc:danhSachSudungMayMoc[index].split(' - ')[1],
+           ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: danhSachSudungMayMoc.length,
-              itemBuilder: (context, index) {
-                return InkWell(
-                  onTap: () async {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => chitietphieumaymoc(
-                          ngayPhieu: danhSachSudungMayMoc[index],
-                          idPhieumaymoc:
-                              danhSachSudungMayMoc[index].split(' - ')[1],
-                        ),
-                      ),
-                    );
-                  },
-                  child: ListTile(
-                    title: Text(danhSachSudungMayMoc[index]),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+        );
+      },
+      child: ListTile(
+        title: Text(danhSachSudungMayMoc[index]), // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
       ),
+    );
+  },
+),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          if (startTime != null && endTime != null) {
-            themphieudoanhthu(startTime!, endTime!);
-            startTime = null;
-            endTime = null;
-          }
+          themphieudoanhthu();
         },
         child: Icon(Icons.add),
       ),
+    );
+  }
+}
+
+// Chua xong......
+class DoanhThuData {
+  String tenMayMoc;
+  String tinhTrang;
+  String ngayNhapPhieu;
+ String idChitietPhieumaymoc;
+
+  DoanhThuData({
+    required this.tenMayMoc,
+    required this.tinhTrang,
+    required this.ngayNhapPhieu,
+    required this.idChitietPhieumaymoc,
+  });
+}
+
+class chitietphieudoanhthu extends StatefulWidget {
+  final String ngayPhieu;
+  final String idPhieumaymoc;
+
+
+  chitietphieudoanhthu({required this.ngayPhieu,required this.idPhieumaymoc});
+
+  @override
+  _chitietphieudoanhthuState createState() => _chitietphieudoanhthuState();
+}
+
+class _chitietphieudoanhthuState extends State<chitietphieudoanhthu> {
+  List<DoanhThuData> danhSachDoanhThu = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDataSudungDoanhThu();
+  }
+
+  Future<void> fetchDataSudungDoanhThu() async {
+    try {
+      String uri = "http://buffquat13.000webhostapp.com/get_phieudoanhthu.php";
+      var response = await http.get(Uri.parse(uri));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<DoanhThuData> doanhThuList = data.map((item) => DoanhThuData(
+              tenMayMoc: item['tenMayMoc'],
+              tinhTrang: item['tinhtrangCuoiNgay'],
+              ngayNhapPhieu: item['ngayNhapPhieu'],
+              idChitietPhieumaymoc: item['idPhieumaymoc'],
+            )).toList();
+
+        setState(() {
+          danhSachDoanhThu = doanhThuList.where((doanhThu) => doanhThu.idChitietPhieumaymoc == widget.idPhieumaymoc).toList();
+        });
+      } else {
+        print("Lỗi khi lấy dữ liệu từ bảng sudungmaymoc: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi khi lấy dữ liệu từ bảng sudungmaymoc: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Phiếu doanh thu: ${widget.ngayPhieu}',
+          style: TextStyle(fontSize: 19),
+        ),
+      ),
+      body: ListView.builder(
+        itemCount: danhSachDoanhThu.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(danhSachDoanhThu[index].tenMayMoc),
+            subtitle: Text(danhSachDoanhThu[index].ngayNhapPhieu),
+            // Hiển thị thông tin máy móc (thay bằng thông tin thực tế của bạn)
+          );
+        },
+      ),
+     floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => themmaymoc(
+          idPhieumaymoc: widget.idPhieumaymoc,
+        ),
+      ),
+    );
+  },
+  child: Icon(Icons.add),
+),
+
     );
   }
 }
@@ -791,49 +850,145 @@ class DangNhap extends StatelessWidget {
 //Trang Home
 
 
-class HomeUser extends StatelessWidget {
-  final List<String> menuItems = ['Doanh thu công việc', 'Máy móc', 'Dụng cụ', 'Vật liệu'];
-
-  final String userId; 
+class HomeUser extends StatefulWidget {
+  final String userId;
 
   HomeUser({required this.userId});
 
   @override
+  _HomeUserState createState() => _HomeUserState();
+}
+
+class _HomeUserState extends State<HomeUser> {
+  final List<String> menuItems = ['Doanh thu công việc', 'Máy móc', 'Dụng cụ', 'Vật liệu'];
+
+  bool isWorking = false;
+  bool isEndButtonDisabled = true;
+  late String Batdaulamviec;  // Trạng thái làm việc
+
+  @override
   Widget build(BuildContext context) {
-     return Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text('Trang chủ'),
       ),
-    body:GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // Hiển thị 2 cột
-        crossAxisSpacing: 10.0, // Khoảng cách giữa các cột
-        mainAxisSpacing: 10.0, // Khoảng cách giữa các dòng
-      ),
-      itemCount: menuItems.length,
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: () {
-            // Xử lý sự kiện khi nhấp vào menu
-            _navigateToMenuScreen(context, index);
-          },
-          child: Container(
-            color: Colors.blueGrey, // Màu nền menu
-            child: Center(
-              child: Text(
-                menuItems[index], // Hiển thị tên menu
-                style: TextStyle(fontSize: 20, color: Colors.white),
+      body: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // Hiển thị 2 cột
+          crossAxisSpacing: 10.0, // Khoảng cách giữa các cột
+          mainAxisSpacing: 10.0, // Khoảng cách giữa các dòng
+        ),
+        itemCount: menuItems.length + 2, // Thêm 2 nút
+        itemBuilder: (context, index) {
+          if (index == menuItems.length) {
+            return ElevatedButton(
+              onPressed: isWorking ? null : () => startWorkTime(),
+              child: Text("Bắt đầu làm việc"),
+            );
+          } else if (index == menuItems.length + 1) {
+            return ElevatedButton(
+              onPressed: isEndButtonDisabled ? null : () => showEndConfirmation(),
+              child: Text("Kết thúc làm việc"),
+            );
+          } else {
+            return GestureDetector(
+              onTap: () {
+                _navigateToMenuScreen(context, index);
+              },
+              child: Container(
+                color: Colors.blueGrey,
+                child: Center(
+                  child: Text(
+                    menuItems[index],
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                ),
               ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Future<void> startWorkTime() async {
+    try {
+      DateTime now = DateTime.now();
+      Batdaulamviec = "${now.hour}:${now.minute}";
+
+      setState(() {
+        isWorking = true;
+        isEndButtonDisabled = false;
+      });
+
+      print("Bắt đầu làm việc: $Batdaulamviec");
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> endWorkTime() async {
+    try {
+      DateTime now = DateTime.now();
+      String KetThuclamviec = "${now.hour}:${now.minute}";
+      String Ngaylamviec = "${now.day}/${now.month}/${now.year}";
+
+      setState(() {
+        isWorking = false;
+        isEndButtonDisabled = true;
+      });
+
+      String uri = "http://buffquat13.000webhostapp.com/themngaylamviec.php";
+      var res = await http.post(Uri.parse(uri), body: {
+        "ngaylamviec": Ngaylamviec,
+        "thoigianbatdau": Batdaulamviec,
+        "thoigianketthuc": KetThuclamviec,
+        "uid": widget.userId,
+      });
+
+      var response = jsonDecode(res.body);
+      if (response["Success"] == "true") {
+        print("Thêm thời gian kết thúc làm việc thành công!");
+      } else {
+        print("Lỗi khi thêm thời gian kết thúc làm việc!");
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> showEndConfirmation() async {
+    bool shouldEndWork = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Xác nhận kết thúc làm việc'),
+          content: Text('Bạn có chắc muốn kết thúc làm việc?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Không'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
             ),
-          ),
+            TextButton(
+              child: Text('Có'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
         );
       },
-    ),
-     );
+    );
+
+    if (shouldEndWork) {
+      endWorkTime();
+    }
   }
+
   void _navigateToMenuScreen(BuildContext context, int index) {
-    // Hàm chuyển hướng khi nhấp vào menu
     String menuName = menuItems[index];
-    Navigator.pushNamed(context, '/${menuName.toLowerCase()}',arguments: userId);
+    Navigator.pushNamed(context, '/${menuName.toLowerCase()}', arguments: widget.userId);
   }
 }
