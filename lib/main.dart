@@ -1651,11 +1651,16 @@ class _DangNhapState extends State<DangNhap> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   bool showError = false;
+  bool showProgressBar = false; // Biến kiểm soát việc hiển thị progress bar
   String errorMessage = "";
 
   Future<void> login(BuildContext context) async {
     if (email.text.isNotEmpty && password.text.isNotEmpty) {
       try {
+        setState(() {
+          showProgressBar = true; // Hiển thị progress bar khi đăng nhập bắt đầu
+        });
+
         String uri = "http://buffquat13.000webhostapp.com/login.php";
 
         var res = await http.post(Uri.parse(uri), body: {
@@ -1665,20 +1670,34 @@ class _DangNhapState extends State<DangNhap> {
 
         var response = jsonDecode(res.body);
 
+        setState(() {
+          showProgressBar = false; // Ẩn progress bar khi xử lý đăng nhập xong
+        });
+
         if (response["Success"] == true) {
-          print("Đăng nhập thành công!");
+           print("Đăng nhập thành công!");
           String userId = response['uid'];
           print('id user la: ' + userId);
           Navigator.pushReplacementNamed(context, '/home', arguments: userId);
+          // ... Phần xử lý khi đăng nhập thành công
         } else {
-          print("Đăng nhập thất bại: ${response["Message"]}");
           setState(() {
             showError = true;
             errorMessage = response["Message"];
           });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       } catch (e) {
         print("Lỗi: $e");
+        setState(() {
+          showProgressBar = false; // Ẩn progress bar khi xảy ra lỗi
+        });
       }
     } else {
       print("Làm ơn điền vào ô trống");
@@ -1691,52 +1710,70 @@ class _DangNhapState extends State<DangNhap> {
       appBar: AppBar(
         title: Text('Login'),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Container(
-            margin: EdgeInsets.all(10),
-            child: TextFormField(
-              controller: email,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Nhập email',
+          Column(
+            children: [
+              Container(
+                margin: EdgeInsets.all(10),
+                child: TextFormField(
+                  controller: email,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Nhập email',
+                  ),
+                ),
               ),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.all(10),
-            child: TextFormField(
-              controller: password,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Nhập mật khẩu',
+              Container(
+                margin: EdgeInsets.all(10),
+                child: TextFormField(
+                  controller: password,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Nhập mật khẩu',
+                  ),
+                ),
               ),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.all(10),
-            child: ElevatedButton(
-              onPressed: () {
-                login(context);
-              },
-              child: Text("Đăng nhập"),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.all(10),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/dangky');
-              },
-              child: Text('Dang ky'),
-            ),
+              Container(
+                margin: EdgeInsets.all(10),
+                child: ElevatedButton(
+                  onPressed: () {
+                    login(context);
+                  },
+                  child: Text("Đăng nhập"),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.all(10),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/dangky');
+                  },
+                  child: Text('Dang ky'),
+                ),
+              ),
+            ],
           ),
           Visibility(
-            visible: showError,
-            child: SnackBar(
-              content: Text(errorMessage),
-              duration: Duration(seconds: 2),
-              backgroundColor: Colors.red,
+            visible: showProgressBar,
+            child: Container(
+              color: Colors.black.withOpacity(0.4), // Màu nền tối
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: Colors.green,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Đang xử lý...",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -1744,6 +1781,15 @@ class _DangNhapState extends State<DangNhap> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 //Trang Home
