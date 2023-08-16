@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -8,7 +8,6 @@ void main() {
     initialRoute: '/',
     routes: {
       '/':(context) => DangNhap(),
-      '/dangky':(context)=>DangKy(),
       '/home': (context) {
       final userId = ModalRoute.of(context)?.settings.arguments as String?;
       return HomeUser(userId: userId ?? ''); // Truyền userId vào trang HomeUser
@@ -1540,105 +1539,6 @@ class _ThemVatLieuScreenState extends State<themvatlieu>{
 
 
 ///////////////////////////////////////////// End Vật liệu
-class DangKy extends StatelessWidget{
-
-  TextEditingController name = TextEditingController();
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
-
-  Future<void> insertrecord() async {
-    if(name.text!="" || email.text!= "" || password.text!=""){
-      try{
-
-        String uri = "http://buffquat13.000webhostapp.com/insert_record.php";
-
-        var res=await http.post(Uri.parse(uri),body: {
-          "name":name.text,
-          "email":email.text,
-          "password":password.text
-        });
-        var response = jsonDecode(res.body);
-        if(response["Success"]=="true"){
-          print("Them thanh cong!");
-          name.text="";
-          email.text="";
-          password.text="";
-        }
-        else{
-          print("Error!");
-        }
-      }
-      catch(e){
-        print(e);
-      }
-
-    }
-    else{
-      print("Lam on dien vao o trong");
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-   
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-        title: Text('Create Account'),
-      ),
-     body:Column(children: [
-         Container(
-      margin: EdgeInsets.all(10),
-      child: TextFormField(
-        controller: name,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(), label: Text('Nhập tên')),
-        ),
-      
-        
-      ),
-      Container(
-        
-      margin: EdgeInsets.all(10),
-      child: TextFormField(
-        controller: email,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(), label: Text('Nhập email')),
-        ),
-        
-      ),
-         Container(
-      margin: EdgeInsets.all(10),
-      child: TextFormField(
-        controller: password,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(), label: Text('Nhập mật khẩu')),
-        ),
-        
-      ),
-      Container(
-        margin: EdgeInsets.all(10),
-        child: ElevatedButton(
-          onPressed: (){
-            insertrecord();
-          },
-          child: Text("Save"),
-        ),
-      ),
-         Container(
-            margin: EdgeInsets.all(10),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/');
-              },
-              child: Text('Đăng nhập'),
-            ),
-          ),
-      ]),
-      ),
-    );
-  }
-}
 
 
 
@@ -1743,15 +1643,6 @@ class _DangNhapState extends State<DangNhap> {
                   child: Text("Đăng nhập"),
                 ),
               ),
-              Container(
-                margin: EdgeInsets.all(10),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/dangky');
-                  },
-                  child: Text('Dang ky'),
-                ),
-              ),
             ],
           ),
           Visibility(
@@ -1809,7 +1700,21 @@ class _HomeUserState extends State<HomeUser> {
 
   bool isWorking = false;
   bool isEndButtonDisabled = true;
-  late String Batdaulamviec;  // Trạng thái làm việc
+  late String Batdaulamviec;
+  
+    // Trạng thái làm việc
+
+      @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      setState(() {
+        Batdaulamviec = prefs.getString('startWorkTime') ?? '';
+        isWorking = Batdaulamviec.isNotEmpty;
+        isEndButtonDisabled = !isWorking;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1866,27 +1771,34 @@ class _HomeUserState extends State<HomeUser> {
     );
   }
 
-  Future<void> startWorkTime() async {
-    try {
-      DateTime now = DateTime.now();
-      Batdaulamviec = "${now.hour}:${now.minute}";
+Future<void> startWorkTime() async {
+  try {
+    DateTime now = DateTime.now();
+    Batdaulamviec = "${now.hour}:${now.minute}";
 
-      setState(() {
-        isWorking = true;
-        isEndButtonDisabled = false;
-      });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('startWorkTime', Batdaulamviec);
 
-      print("Bắt đầu làm việc: $Batdaulamviec");
-    } catch (e) {
-      print(e);
-    }
+    setState(() {
+      isWorking = true;
+      isEndButtonDisabled = false;
+    });
+
+    print("Bắt đầu làm việc: $Batdaulamviec");
+  } catch (e) {
+    print(e);
   }
+}
+
 
   Future<void> endWorkTime() async {
     try {
       DateTime now = DateTime.now();
       String KetThuclamviec = "${now.hour}:${now.minute}";
       String Ngaylamviec = "${now.day}/${now.month}/${now.year}";
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('startWorkTime');
 
       setState(() {
         isWorking = false;
