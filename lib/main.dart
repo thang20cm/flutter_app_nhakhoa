@@ -1551,14 +1551,26 @@ class _DangNhapState extends State<DangNhap> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   bool showError = false;
-  bool showProgressBar = false; // Biến kiểm soát việc hiển thị progress bar
+  bool showProgressBar = false;
   String errorMessage = "";
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      String savedEmail = prefs.getString('email') ?? '';
+
+      setState(() {
+        email.text = savedEmail;
+      });
+    });
+  }
 
   Future<void> login(BuildContext context) async {
     if (email.text.isNotEmpty && password.text.isNotEmpty) {
       try {
         setState(() {
-          showProgressBar = true; // Hiển thị progress bar khi đăng nhập bắt đầu
+          showProgressBar = true;
         });
 
         String uri = "http://buffquat13.000webhostapp.com/login.php";
@@ -1571,20 +1583,23 @@ class _DangNhapState extends State<DangNhap> {
         var response = jsonDecode(res.body);
 
         setState(() {
-          showProgressBar = false; // Ẩn progress bar khi xử lý đăng nhập xong
+          showProgressBar = false;
         });
 
         if (response["Success"] == true) {
-           print("Đăng nhập thành công!");
           String userId = response['uid'];
-          print('id user la: ' + userId);
+
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('userId', userId);
+          await prefs.setString('email', email.text);
+
           Navigator.pushReplacementNamed(context, '/home', arguments: userId);
-          // ... Phần xử lý khi đăng nhập thành công
         } else {
           setState(() {
             showError = true;
             errorMessage = response["Message"];
           });
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -1596,7 +1611,7 @@ class _DangNhapState extends State<DangNhap> {
       } catch (e) {
         print("Lỗi: $e");
         setState(() {
-          showProgressBar = false; // Ẩn progress bar khi xảy ra lỗi
+          showProgressBar = false;
         });
       }
     } else {
@@ -1628,6 +1643,7 @@ class _DangNhapState extends State<DangNhap> {
                 margin: EdgeInsets.all(10),
                 child: TextFormField(
                   controller: password,
+                  obscureText: true,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Nhập mật khẩu',
@@ -1648,7 +1664,7 @@ class _DangNhapState extends State<DangNhap> {
           Visibility(
             visible: showProgressBar,
             child: Container(
-              color: Colors.black.withOpacity(0.4), // Màu nền tối
+              color: Colors.black.withOpacity(0.4),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1672,8 +1688,6 @@ class _DangNhapState extends State<DangNhap> {
     );
   }
 }
-
-
 
 
 
