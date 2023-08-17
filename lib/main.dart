@@ -1810,6 +1810,7 @@ Future<void> startWorkTime() async {
       DateTime now = DateTime.now();
       String KetThuclamviec = "${now.hour}:${now.minute}";
       String Ngaylamviec = "${now.day}/${now.month}/${now.year}";
+      String Trangthai = "Chưa duyệt";
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('startWorkTime');
@@ -1824,6 +1825,7 @@ Future<void> startWorkTime() async {
         "ngaylamviec": Ngaylamviec,
         "thoigianbatdau": Batdaulamviec,
         "thoigianketthuc": KetThuclamviec,
+        "trangthai":Trangthai,
         "uid": widget.userId,
       });
 
