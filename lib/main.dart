@@ -48,7 +48,7 @@ class congviec extends StatelessWidget {
             margin: EdgeInsets.only(top: 120),
             child: Text(
               'CHỌN CÔNG VIỆC CỦA BẠN',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white,fontFamily: 'SFUFUTURABOOK',),
               textAlign: TextAlign.center,
             ),
           ),
@@ -111,14 +111,13 @@ class CongViecItem extends StatelessWidget {
           ),
           child: Text(
             title,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color.fromRGBO(46, 173, 67, 1)),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color.fromRGBO(46, 173, 67, 1),fontFamily: 'SFUFUTURABOOK',),
           ),
         ),
       ),
     );
   }
 }
-
 
 
 
@@ -138,7 +137,23 @@ class doanhthucongviec extends StatefulWidget {
 
 class _DoanhThuCongViecState extends State<doanhthucongviec> {
   TextEditingController ngayNhapPhieu = TextEditingController();
-  List<String> danhSachSudungDoanhThu = [];
+  List<String> danhSachSuDungDoanhThu = [];
+
+  String trichXuatThang(String ngayNhapPhieu) {
+    final parts = ngayNhapPhieu.split('/');
+    if (parts.length >= 2) {
+      return parts[1];
+    }
+    return '';
+  }
+
+  String trichXuatNam(String ngayNhapPhieu) {
+    final parts = ngayNhapPhieu.split('/');
+    if (parts.length >= 3) {
+      return parts[2];
+    }
+    return '';
+  }
 
   @override
   void initState() {
@@ -153,39 +168,39 @@ class _DoanhThuCongViecState extends State<doanhthucongviec> {
   }
 
   Future<void> themPhieuDoanhThu() async {
-  if (ngayNhapPhieu.text != "") {
-    try {
-      String uri = "http://buffquat13.000webhostapp.com/themphieudoanhthu.php";
-      var res = await http.post(Uri.parse(uri), body: {
-        "ngaynhapphieu": ngayNhapPhieu.text,
-        "uid": widget.userId,
-      });
-      var response = jsonDecode(res.body);
-      if (response["Success"] == "true") {
-        print("Thêm phiếu doanh thu thành công!");
-        ngayNhapPhieu.text = "";
-        
-        // Lấy danh sách mới nhất sau khi thêm thành công
-        await getPhieuDoanhThu();
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Thêm thành công!'),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        print("Lỗi khi thêm phiếu doanh thu!");
+    if (ngayNhapPhieu.text != "") {
+      try {
+        String uri = "http://buffquat13.000webhostapp.com/themphieudoanhthu.php";
+        var res = await http.post(Uri.parse(uri), body: {
+          "ngaynhapphieu": ngayNhapPhieu.text,
+          "uid": widget.userId,
+        });
+        var response = jsonDecode(res.body);
+        if (response["Success"] == "true") {
+          print("Thêm phiếu doanh thu thành công!");
+          ngayNhapPhieu.text = "";
+
+          // Lấy danh sách mới nhất sau khi thêm thành công
+          await getPhieuDoanhThu();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Thêm thành công!'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          print("Lỗi khi thêm phiếu doanh thu!");
+        }
+      } catch (e) {
+        print(e);
       }
-    } catch (e) {
-      print(e);
+    } else {
+      print("Vui lòng điền vào ô trống");
     }
-  } else {
-    print("Vui lòng điền vào ô trống");
   }
-}
 
   Future<void> getPhieuDoanhThu() async {
     try {
@@ -199,7 +214,7 @@ class _DoanhThuCongViecState extends State<doanhthucongviec> {
             .map((item) => "${item['ngayNhapPhieu']} - ${item['idPhieudoanhthu']}")
             .toList();
         setState(() {
-          this.danhSachSudungDoanhThu = danhSachDoanhThu;
+          this.danhSachSuDungDoanhThu = danhSachDoanhThu;
         });
       } else {
         print("Lỗi khi lấy dữ liệu từ bảng phieudoanhthu: ${response.statusCode}");
@@ -208,79 +223,108 @@ class _DoanhThuCongViecState extends State<doanhthucongviec> {
       print("Lỗi khi lấy dữ liệu từ bảng phieudoanhthu: $e");
     }
   }
-Future<void> xoaPhieuDoanhThu(String idPhieudoanhthu) async {
-  try {
-    String uri = "http://buffquat13.000webhostapp.com/xoaphieudoanhthu.php";
-    var res = await http.post(Uri.parse(uri), body: {
-      "idPhieudoanhthu": idPhieudoanhthu,
-    });
-    var response = jsonDecode(res.body);
-    if (response["Success"] == "true") {
-      print("Xóa phiếu doanh thu thành công!");
-      await getPhieuDoanhThu();
-       // Hiển thị SnackBar thông báo xóa thành công
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Xóa thành công!'),
-          duration: Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red, // Màu nền SnackBar
-        ),
-      ); // Lấy danh sách mới sau khi xóa
-    } else {
-      print("Lỗi khi xóa phiếu doanh thu!");
+
+  Future<void> xoaPhieuDoanhThu(String idPhieudoanhthu) async {
+    try {
+      String uri = "http://buffquat13.000webhostapp.com/xoaphieudoanhthu.php";
+      var res = await http.post(Uri.parse(uri), body: {
+        "idPhieudoanhthu": idPhieudoanhthu,
+      });
+      var response = jsonDecode(res.body);
+      if (response["Success"] == "true") {
+        print("Xóa phiếu doanh thu thành công!");
+        await getPhieuDoanhThu();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Xóa thành công!'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        print("Lỗi khi xóa phiếu doanh thu!");
+      }
+    } catch (e) {
+      print(e);
     }
-  } catch (e) {
-    print(e);
   }
-}
 
+  List<String> filterPhieuTheoThang(String thang, String nam) {
+    return danhSachSuDungDoanhThu.where((phieu) {
+      final parts = phieu.split(' - ');
+      final ngayNhapPhieu = parts[0];
+      final thangPhieu = trichXuatThang(ngayNhapPhieu);
+      final namPhieu = trichXuatNam(ngayNhapPhieu);
+      return thangPhieu == thang && namPhieu == nam;
+    }).toList();
+  }
 
-
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: Column(
-      children: [
-        Container(
-          margin: EdgeInsets.only(top: 40, bottom: 20),
-          child: Text(
-            '${widget.title}',
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(88, 203, 108, 1),
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 12, // Số tab tương ứng với 12 năm
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor:Color.fromRGBO(11, 180, 34, 1),
+          title: Text(widget.title),
+          bottom: TabBar(
+            indicatorColor: Colors.white,
+            isScrollable: true,
+            tabs: List<Widget>.generate(12, (int index) {
+              final year = DateTime.now().year - index;
+              return Tab(
+                text: "Năm $year",
+              );
+            }),
           ),
         ),
-        Container(
-          margin: EdgeInsets.only(top: 0, bottom: 20),
-          child: Text(
-            'Danh sách phiếu doanh thu',
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(88, 203, 108, 1),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            margin: EdgeInsets.only(left: 10, right: 10),
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 10.0,
-                mainAxisSpacing: 10.0,
-              ),
-              itemCount: danhSachSudungDoanhThu.length,
+        body: TabBarView(
+          children: List<Widget>.generate(12, (int index) {
+            final year = DateTime.now().year - index;
+            return ListView.builder(
+              
+              itemCount: 12, // Số tháng trong năm
               itemBuilder: (context, index) {
-                final parts = danhSachSudungDoanhThu[index].split(' - ');
-                final ngayNhapPhieu = parts[0];
-                final idPhieudoanhthu = parts[1];
-                return InkWell(
-                  onTap: () async {
-                    Navigator.push(
+                final month = index + 1;
+                final phiieusThangNam = filterPhieuTheoThang(month.toString(), year.toString());
+                if (phiieusThangNam.isEmpty) {
+                  return SizedBox.shrink(); // Không hiển thị nếu không có phiếu trong tháng/năm
+                }
+                return Column(
+                  
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        'Tháng $month',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                           fontFamily: 'SFUFUTURABOOK',
+                           color: Color.fromRGBO(226, 18, 18, 1)
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(left: 10,right: 10),
+                   child:GridView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(                    
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 10.0,
+                        mainAxisSpacing: 10.0,
+                      ),
+                      itemCount: phiieusThangNam.length,
+                      itemBuilder: (context, index) {
+                        final parts = phiieusThangNam[index].split(' - ');
+                        final ngayNhapPhieu = parts[0];
+                        final idPhieudoanhthu = parts[1];
+                        return InkWell(
+                          onTap: () async {
+                            Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => chitietphieudoanhthu(
@@ -289,92 +333,99 @@ Widget build(BuildContext context) {
                         ),
                       ),
                     );
-                  },
-                     onLongPress: () {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Xóa Phiếu Doanh Thu"),
-            content: Text("Bạn có chắc muốn xóa phiếu này?"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Đóng dialog
-                },
-                child: Text("Hủy"),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await xoaPhieuDoanhThu(idPhieudoanhthu);
-                  Navigator.of(context).pop(); // Đóng dialog
-                },
-                child: Text("Xóa"),
-              ),
-            ],
-          );
-        },
-      );
-    },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color.fromRGBO(11, 180, 34, 1), // Màu nền đúng
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          // Màu nền đúng
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.receipt, // Thay bằng icon phiếu của bạn
-                              color: Colors.white,
-                              size: 48,
+                          },
+                          onLongPress: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text("Xóa Phiếu Doanh Thu"),
+                                  content: Text("Bạn có chắc muốn xóa phiếu này?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(); // Đóng dialog
+                                      },
+                                      child: Text("Hủy"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        await xoaPhieuDoanhThu(idPhieudoanhthu);
+                                        Navigator.of(context).pop(); // Đóng dialog
+                                      },
+                                      child: Text("Xóa"),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          
+                            child:Container(
+                            decoration: BoxDecoration(
+                              color: Color.fromRGBO(11, 180, 34, 1),
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
-                            SizedBox(height: 8),
-                            Text(
-                              ngayNhapPhieu,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal,
-                              ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.receipt,
+                                      color: Colors.white,
+                                      size: 40,
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      ngayNhapPhieu,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'SFUFUTURABOOK'
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                  
+                        );
+                      },
                     ),
-                  ),
+                ),
+                  ],
                 );
               },
-            ),
-          ),
+            );
+          }),
         ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      backgroundColor: Color.fromRGBO(11, 180, 34, 1), // Màu nền đúng
-      onPressed: () async {
-        themPhieuDoanhThu();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Thêm thành công!'),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.green,
-          ),
-        );
-      },
-      child: Icon(Icons.add),
-    ),
-  );
-}
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Color.fromRGBO(11, 180, 34, 1),
+          onPressed: () async {
+            themPhieuDoanhThu();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Thêm thành công!'),
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+          child: Icon(Icons.add),
+        ),
+      ),
+    );
+  }
 }
 
 
@@ -3091,7 +3142,7 @@ Widget build(BuildContext context) {
                   ),
                   minimumSize: Size(0, 50),
                 ),
-                child: Text("Bắt đầu", style: TextStyle(fontSize: 19)),
+                child: Text("Bắt đầu", style: TextStyle(fontSize: 19,fontFamily: 'SFUFUTURABOOK',fontWeight: FontWeight.bold)),
               ),
             ),
             Container(
@@ -3112,7 +3163,7 @@ Widget build(BuildContext context) {
                   ),
                   minimumSize: Size(0, 50),
                 ),
-                child: Text("Kết thúc", style: TextStyle(fontSize: 19)),
+                child: Text("Kết thúc", style: TextStyle(fontSize: 19,fontFamily: 'SFUFUTURABOOK',fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -3145,6 +3196,7 @@ Widget build(BuildContext context) {
                   fontSize: 20,
                   color: Color.fromRGBO(88, 203, 108, 1),
                   fontWeight: FontWeight.w700,
+                  fontFamily: 'SFUFUTURABOOK',
                 ),
                 textAlign: TextAlign.center,
               ),
