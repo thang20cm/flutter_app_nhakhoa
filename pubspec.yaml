@@ -33,6 +33,10 @@ dependencies:
   http: ^0.13.3
   fluttertoast: ^8.0.7
   shared_preferences: ^2.0.0
+  
+    
+  
+
     
 
   # The following adds the Cupertino Icons font to your application.
@@ -42,7 +46,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  intl: ^0.17.0
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -62,9 +66,10 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/logo.png
+    - assets/images/pw.png
+    - assets/images/user.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -77,10 +82,14 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
+  fonts:
+    - family: SFUFUTURABOOK
+      fonts:
+        - asset: fonts/SFUFUTURABOOK.TTF
+        
+    - family: SFUFUTURABOLD
+      fonts:
+        - asset: fonts/SFUFUTURABOLD.TTF
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro
