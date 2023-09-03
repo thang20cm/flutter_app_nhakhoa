@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
+
 
 
 
@@ -37,44 +37,24 @@ class congviec extends StatelessWidget {
 
   congviec({required this.userId});
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-       backgroundColor: const Color.fromRGBO(88, 203, 108, 1),
-      body: Stack(
+      backgroundColor: const Color.fromRGBO(88, 203, 108, 1),
+      body: ListView(
+        padding: EdgeInsets.all(16),
         children: [
-          ListView(
-            padding: EdgeInsets.all(16),
-            children: [
-              Container(
-                margin: EdgeInsets.only(top: 120),
-                child: Text(
-                  'CHỌN CÔNG VIỆC CỦA BẠN',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white, fontFamily: 'SFUFUTURABOOK'),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              CongViecItem(title: 'LÂM SÀN', userId: userId),
-              CongViecItem(title: 'LAB THIẾT KẾ RĂNG', userId: userId),
-              CongViecItem(title: 'CÔNG NGHỆ', userId: userId),
-            ],
-          ),
-          Positioned(
-            top: 20, // Khoảng cách từ phía trên
-            left: 16, // Khoảng cách từ phía trái
-            child: Container(
-             
-              child: IconButton(
-                 icon: Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.white, // Đổi màu biểu tượng ở đây
-                  ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
+          Container(
+            margin: EdgeInsets.only(top: 120),
+            child: Text(
+              'CHỌN CÔNG VIỆC CỦA BẠN',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white,fontFamily: 'SFUFUTURABOOK',),
+              textAlign: TextAlign.center,
             ),
           ),
+          CongViecItem(title: 'LÂM SÀN', userId: userId),
+          CongViecItem(title: 'LAB THIẾT KẾ RĂNG', userId: userId),
+          CongViecItem(title: 'CÔNG NGHỆ', userId: userId),
         ],
       ),
     );
@@ -333,7 +313,7 @@ class _DoanhThuCongViecState extends State<doanhthucongviec> {
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(                    
-                        crossAxisCount: 4,
+                        crossAxisCount: 5,
                         crossAxisSpacing: 10.0,
                         mainAxisSpacing: 10.0,
                       ),
@@ -522,15 +502,6 @@ class _chitietphieudoanhthuState extends State<chitietphieudoanhthu> {
 Widget build(BuildContext context) {
   double screenWidth = MediaQuery.of(context).size.width;
   double columnWidthPercentage = screenWidth * 0.2; // Ví dụ: mỗi cột chiếm 25% màn hình
-  int totalQuantity = 0;
-  int totalMoney = 0; // Biến để tính tổng số lượng
-
-// Duyệt qua danh sách để tính tổng số lượng
-  for (var item in danhSachDoanhThu) {
-    totalQuantity += int.parse(item.Soluong);
-    totalMoney = totalQuantity * 3000;
-  }
-  String formattedTotalMoney = NumberFormat.currency(locale: 'vi_VN', symbol: '').format(totalMoney);
 
   return Scaffold(
     appBar: AppBar(
@@ -539,133 +510,124 @@ Widget build(BuildContext context) {
         style: TextStyle(fontSize: 19),
       ),
     ),
-    body:SingleChildScrollView(
-    child: Container(
-  width: double.infinity,
-  child: SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: Column(
-      children: [
-        Table(
-          border: TableBorder.all(),
-          columnWidths: {
-            0: FixedColumnWidth(columnWidthPercentage),
-            1: FixedColumnWidth(columnWidthPercentage),
-            2: FixedColumnWidth(columnWidthPercentage),
-            3: FixedColumnWidth(columnWidthPercentage),
-            4: FixedColumnWidth(columnWidthPercentage),
-          },
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+    body: Container(
+      width: double.infinity, // Đảm bảo container rộng bằng màn hình
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center, // Căn giữa theo chiều ngang
           children: [
-            TableRow(
+            Table(
+              border: TableBorder.all(), // Đường viền cho bảng
+              columnWidths: {
+                0: FixedColumnWidth(columnWidthPercentage), // Độ rộng cột 0
+                1: FixedColumnWidth(columnWidthPercentage), // Độ rộng cột 1
+                2: FixedColumnWidth(columnWidthPercentage), // Độ rộng cột 2
+                3: FixedColumnWidth(columnWidthPercentage),
+                4: FixedColumnWidth(columnWidthPercentage),  // Độ rộng cột 3
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle, // Căn giữa theo chiều dọc
               children: [
-                TableCell(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      'Thời gian nhận việc',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                TableRow(
+                  children: [
+                    TableCell(
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        // Màu nền
+                        child: Text(
+                          'Thời gian nhận việc',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                TableCell(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      'Khách hàng - Mã số',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    TableCell(
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                       // Màu nền
+                        child: Text(
+                          'Khách hàng - Mã số',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                TableCell(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      'Nội dung',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    TableCell(
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                       // Màu nền
+                        child: Text(
+                          'Nội dung',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                TableCell(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      'Tên sản phẩm',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                     TableCell(
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                     // Màu nền
+                        child: Text(
+                          'Tên sản phẩm',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                TableCell(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      'Số lượng',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                     TableCell(
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        // Màu nền
+                        child: Text(
+                          'Số lượng',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+                // Thêm các hàng dữ liệu tương tự như dưới đây
+                for (var item in danhSachDoanhThu)
+                  TableRow(
+                    children: [
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle, // Căn giữa theo chiều dọc
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Padding tùy chỉnh
+                          child: Text(item.Thoigiannhanviec),
+                        ),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle, // Căn giữa theo chiều dọc
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Padding tùy chỉnh
+                          child: Text(item.Khachhangmaso),
+                        ),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle, // Căn giữa theo chiều dọc
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Padding tùy chỉnh
+                          child: Text(item.Noidung),
+                        ),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle, // Căn giữa theo chiều dọc
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Padding tùy chỉnh
+                          child: Text(item.Namesanpham),
+                        ),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle, // Căn giữa theo chiều dọc
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Padding tùy chỉnh
+                          child: Text(item.Soluong),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
-            for (var item in danhSachDoanhThu)
-              TableRow(
-                children: [
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      child: Text(item.Thoigiannhanviec),
-                    ),
-                  ),
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      child: Text(item.Khachhangmaso),
-                    ),
-                  ),
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      child: Text(item.Noidung),
-                    ),
-                  ),
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      child: Text(item.Namesanpham),
-                    ),
-                  ),
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      child: Text(item.Soluong),
-                    ),
-                  ),
-                ],
-              ),
           ],
         ),
-        Padding(
-          padding: EdgeInsets.all(8),
-          child: Text(
-            'Tổng số lượng răng: ${totalQuantity.toString()}',
-            style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),
-          ),
-        ),
-          Padding(
-          padding: EdgeInsets.only(bottom: 20),
-          child: Text(
-            'Tổng tiền nhận được: $formattedTotalMoney VND',
-            style: TextStyle(fontWeight: FontWeight.bold,color: Color.fromARGB(255, 34, 218, 80)),
-          ),
-        ),
-      ],
-    ),
-  ),
-),
+      ),
     ),
     floatingActionButton: FloatingActionButton(
       onPressed: () async {
@@ -688,11 +650,9 @@ Widget build(BuildContext context) {
             ),
           );
         }
-        
       },
       child: Icon(Icons.add),
     ),
-    
   );
 }
 
@@ -879,12 +839,6 @@ class _ThemDoanhThuScreenState extends State<themdoanhthu> {
                     ? Color.fromARGB(255, 81, 196, 85)
                     : Color.fromARGB(255, 255, 255, 255),
                 borderRadius: BorderRadius.circular(10),
-                border:Border.all(
-                   color: combinedKhachHangMaSoTemp1 == "BS Nhật"
-                    ? Color.fromARGB(255, 81, 196, 85) // Màu border tùy chỉnh khi điều kiện đúng
-                    : Color.fromARGB(255, 81, 196, 85), // Màu border tùy chỉnh khi điều kiện sai
-                  width: 1,
-                ) 
               ),
               alignment: Alignment.center,
               child: Text(
@@ -904,9 +858,8 @@ class _ThemDoanhThuScreenState extends State<themdoanhthu> {
               color: Color.fromARGB(255, 81, 196, 85),
               fontSize: 12,
               fontFamily: 'SFUFUTURABOOK',
-              fontWeight: FontWeight.w600
+              fontWeight: FontWeight.bold
             ),
-            
           ),
         ],
       ),
@@ -934,12 +887,6 @@ class _ThemDoanhThuScreenState extends State<themdoanhthu> {
                     ? Color.fromARGB(255, 81, 196, 85)
                     : Color.fromARGB(255, 255, 255, 255),
                 borderRadius: BorderRadius.circular(10),
-                 border:Border.all(
-                   color: combinedKhachHangMaSoTemp1 == "NO.1"
-                    ? Color.fromARGB(255, 81, 196, 85) // Màu border tùy chỉnh khi điều kiện đúng
-                    : Color.fromARGB(255, 81, 196, 85), // Màu border tùy chỉnh khi điều kiện sai
-                  width: 1,
-                ) 
               ),
               alignment: Alignment.center,
               child: Text(
@@ -3183,7 +3130,7 @@ Widget build(BuildContext context) {
                 },
                 style: ElevatedButton.styleFrom(
                   primary: const Color.fromARGB(255, 212, 70, 117),
-                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  padding: EdgeInsets.symmetric(horizontal: 60),
                   alignment: Alignment.center,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
@@ -3204,7 +3151,7 @@ Widget build(BuildContext context) {
                 onPressed: isEndButtonDisabled ? null : () => showEndConfirmation(),
                 style: ElevatedButton.styleFrom(
                   primary: const Color.fromARGB(255, 212, 70, 117),
-                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  padding: EdgeInsets.symmetric(horizontal: 60),
                   alignment: Alignment.center,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
